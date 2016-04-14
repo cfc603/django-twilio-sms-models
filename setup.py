@@ -53,6 +53,10 @@ setup(
     ],
     include_package_data=True,
     install_requires=[
+        'twilio>=5.4.0',
+        'Django>=1.8.0',
+        'django-twilio>=0.8.0',
+        'django-phonenumber-field>=1.1.0',
     ],
     license="BSD",
     zip_safe=False,
