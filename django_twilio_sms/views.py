@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+from django.conf import settings
 from django.shortcuts import render
 
 from django_twilio.decorators import twilio_view
@@ -27,7 +28,8 @@ def inbound_view(request):
 
     if twilio_request.type == 'message':
         message_obj = message_view(twilio_request)
-        message_obj.send_response_message()
+        if getattr(settings, 'DJANGO_TWILIO_RESPONSE_MESSAGE', False):
+            message_obj.send_response_message()
     else:
         response = voice_view(response)
 

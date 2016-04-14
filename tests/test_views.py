@@ -22,8 +22,22 @@ class CallbackViewTest(TestCase):
 @override_settings(DJANGO_TWILIO_FORGERY_PROTECTION=False)
 class InboundViewTest(TestCase):
 
+    @override_settings(DJANGO_TWILIO_RESPONSE_MESSAGE=False)
     @patch('django_twilio_sms.views.message_view')
     def test_if_twilio_request_type_is_message(self, mock_message_view):
+        mock = Mock()
+        mock_message_view.return_value = mock
+        response = self.client.post(
+            reverse('django_twilio_sms:inbound_view'), {'MessageSid': 'test'}
+        )
+        self.assertTrue(mock_message_view.called)
+        self.assertFalse(mock.send_response_message.called)
+        self.assertIn('<Response />', str(response.content))
+
+    @override_settings(DJANGO_TWILIO_RESPONSE_MESSAGE=True)
+    @patch('django_twilio_sms.views.message_view')
+    def test_if_twilio_request_type_is_message_if_response_message(self,
+            mock_message_view):
         mock = Mock()
         mock_message_view.return_value = mock
         response = self.client.post(
