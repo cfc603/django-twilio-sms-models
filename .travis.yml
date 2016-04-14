@@ -8,14 +8,29 @@ python:
   - "3.3"
   - "2.7"
 
+env:
+    - DJANGO=1.8
+    - DJANGO=1.9
+    - DJANGO=master
+
+matrix:
+    exclude:
+        - python: "3.3"
+          env: DJANGO=1.9
+        - python: "3.3"
+          env: DJANGO=master
+
 before_install:
-  - pip install codecov
+  - pip install tox codecov
 
 # command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
-install: pip install -r requirements-test.txt
+install:
+    - pip install -r requirements.txt
+    - pip install -r requirements-test.txt
 
 # command to run tests using coverage, e.g. python setup.py test
-script: coverage run --source django_twilio_sms runtests.py
+script:
+    - tox -e py${TRAVIS_PYTHON_VERSION//[.]/}-$DJANGO
 
 after_success:
   - codecov
