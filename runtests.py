@@ -12,15 +12,19 @@ try:
                 "ENGINE": "django.db.backends.sqlite3",
             }
         },
-        ROOT_URLCONF="django_twilio_sms.urls",
+        ROOT_URLCONF="tests.urls",
         INSTALLED_APPS=[
             "django.contrib.auth",
             "django.contrib.contenttypes",
             "django.contrib.sites",
             "django_twilio_sms",
+            "django_twilio",
         ],
         SITE_ID=1,
         MIDDLEWARE_CLASSES=(),
+        TWILIO_ACCOUNT_SID = 'ACXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX',
+        TWILIO_AUTH_TOKEN = 'YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY',
+        TWILIO_DEFAULT_CALLERID = 'NNNNNNNNNN',
     )
 
     try:
