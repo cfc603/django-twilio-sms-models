@@ -1,2 +1,2 @@
-django>=1.9.1
-# Additional requirements go here
+twilio>=5.4.0
+django-twilio>=0.8.0
