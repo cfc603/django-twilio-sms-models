@@ -9,6 +9,7 @@ History
 * Basic admin configuration (#4) (Thanks @carlkibler)
 * Update docs
 * Fix settings typo
+* Add response_message signal
 
 
 1.0.0 (2016-04-14)
