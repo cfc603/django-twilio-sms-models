@@ -52,11 +52,6 @@ Sync the database::
 
     $ python manage.py migrate
 
-Features
---------
-
-* TODO
-
 Running Tests
 --------------
 
