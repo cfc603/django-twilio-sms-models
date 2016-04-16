@@ -3,7 +3,7 @@
 History
 -------
 
-1.1.0 (2016-04-?)
+1.1.0 (2016-04-16)
 ++++++++++++++++++
 
 * Basic admin configuration (#4) (Thanks @carlkibler)
