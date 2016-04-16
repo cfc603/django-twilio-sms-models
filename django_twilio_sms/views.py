@@ -28,7 +28,8 @@ def inbound_view(request):
 
     if twilio_request.type == 'message':
         message_obj = message_view(twilio_request)
-        if getattr(settings, 'DJANGO_TWILIO_RESPONSE_MESSAGE', False):
+        if (getattr(settings, 'DJANGO_TWILIO_SMS_RESPONSE_MESSAGE', False) or
+                getattr(settings, 'DJANGO_TWILIO_RESPONSE_MESSAGE', False)):
             message_obj.send_response_message()
     else:
         response = voice_view(response)
