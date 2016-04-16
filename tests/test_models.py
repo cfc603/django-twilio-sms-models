@@ -369,8 +369,10 @@ class MessageModelTest(CommonTestCase):
             'https://www.test.com/twilio-integration/webhooks/callback-view/'
         )
 
+    @patch('django_twilio_sms.models.response_message')
     @patch('django_twilio_sms.models.Message.send_message')
-    def test_send_response_message_if_direction_is_inbound(self, send_message):
+    def test_send_response_message_if_direction_is_inbound(self, send_message,
+            response_message):
         action = mommy.make(Action, name='STOP')
         response = mommy.make(Response, body='test', action=action)
         to_phone_number = phone_number_recipe.make()
@@ -386,6 +388,9 @@ class MessageModelTest(CommonTestCase):
             body='test',
             to=from_phone_number,
             from_=to_phone_number
+        )
+        response_message.send_robust.assert_called_with(
+            sender=Message, action=action, message=message
         )
 
     def test_sync_twilio_message_if_message(self):

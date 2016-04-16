@@ -11,6 +11,7 @@ from django_twilio.client import twilio_client
 from django_twilio.models import Caller
 from twilio.rest.exceptions import TwilioRestException
 
+from .signals import response_message
 from .utils import AbsoluteURI
 
 
@@ -310,6 +311,9 @@ class Message(Sid):
                 body=action.get_active_response().body,
                 to=self.from_phone_number,
                 from_=self.to_phone_number
+            )
+            response_message.send_robust(
+                sender=self.__class__, action=action, message=self
             )
 
     def sync_twilio_message(self, message=None):
