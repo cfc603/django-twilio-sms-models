@@ -36,8 +36,8 @@ class InboundViewTest(TestCase):
 
     @override_settings(DJANGO_TWILIO_SMS_RESPONSE_MESSAGE=True)
     @patch('django_twilio_sms.views.message_view')
-    def test_if_twilio_request_type_is_message_if_response_message(self,
-            mock_message_view):
+    def test_if_twilio_request_type_is_message_if_response_message(
+            self, mock_message_view):
         mock = Mock()
         mock_message_view.return_value = mock
         response = self.client.post(
@@ -50,8 +50,8 @@ class InboundViewTest(TestCase):
     @override_settings(DJANGO_TWILIO_SMS_RESPONSE_MESSAGE=False)
     @override_settings(DJANGO_TWILIO_RESPONSE_MESSAGE=True)
     @patch('django_twilio_sms.views.message_view')
-    def test_if_twilio_request_type_is_message_if_old_response_message(self,
-            mock_message_view):
+    def test_if_twilio_request_type_is_message_if_old_response_message(
+            self, mock_message_view):
         mock = Mock()
         mock_message_view.return_value = mock
         response = self.client.post(
