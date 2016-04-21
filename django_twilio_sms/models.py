@@ -230,7 +230,7 @@ class Message(Sid):
     )
 
     date_sent = models.DateTimeField(null=True)
-    account =  models.ForeignKey(Account)
+    account = models.ForeignKey(Account)
     messaging_service = models.ForeignKey(MessagingService, null=True)
     from_phone_number = models.ForeignKey(PhoneNumber, related_name='to_phone')
     to_phone_number = models.ForeignKey(PhoneNumber, related_name='from_phone')

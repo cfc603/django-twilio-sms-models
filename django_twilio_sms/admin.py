@@ -1,9 +1,15 @@
 from django.contrib import admin
-from .models import *
+from .models import Account, Message, Response
 
 
 class MessageAdmin(admin.ModelAdmin):
-    list_display = ('to_phone_number', 'from_phone_number', 'status', 'direction', 'date_sent')
+    list_display = (
+        'to_phone_number',
+        'from_phone_number',
+        'status',
+        'direction',
+        'date_sent'
+    )
     list_display_links = list_display
     list_filter = ('status', 'direction', 'date_sent')
     date_hierarchy = 'date_sent'
@@ -17,7 +23,13 @@ class ResponseAdmin(admin.ModelAdmin):
 
 
 class AccountAdmin(admin.ModelAdmin):
-    list_display = ('friendly_name', 'owner_account_sid', 'account_type', 'status', 'date_updated')
+    list_display = (
+        'friendly_name',
+        'owner_account_sid',
+        'account_type',
+        'status',
+        'date_updated'
+    )
     list_display_links = list_display
 
 
