@@ -2,7 +2,6 @@
 from __future__ import unicode_literals
 
 from django.conf import settings
-from django.shortcuts import render
 
 from django_twilio.decorators import twilio_view
 from django_twilio.request import decompose

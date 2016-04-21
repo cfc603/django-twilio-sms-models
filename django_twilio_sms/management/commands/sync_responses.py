@@ -13,7 +13,8 @@ class Command(BaseCommand):
             for action in Action.objects.all():
                 action.delete()
 
-            for action, response in iteritems(settings.DJANGO_TWILIO_SMS_RESPONSES):
+            for action, response in iteritems(
+                    settings.DJANGO_TWILIO_SMS_RESPONSES):
                 action = Action.objects.create(name=action)
                 response = Response.objects.create(
                     body=response, action=action
