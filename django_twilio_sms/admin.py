@@ -3,7 +3,7 @@ from .models import *
 
 
 class MessageAdmin(admin.ModelAdmin):
-    list_display = ('to_phone_number', 'from_phone_number', 'status', 'direction', 'date_sent')
+    list_display = ('to_phone_number', 'from_phone_number', 'status', 'direction', 'date_sent', 'test')
     list_display_links = list_display
     list_filter = ('status', 'direction', 'date_sent')
     date_hierarchy = 'date_sent'
