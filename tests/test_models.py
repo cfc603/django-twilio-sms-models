@@ -45,7 +45,8 @@ class AccountModelTest(CommonTestCase):
     def test_get_account_type_choice_account_type_display_equal_choice(self):
         self.assertEqual(0, Account.get_account_type_choice('Trial'))
 
-    def test_get_account_type_choice_account_type_display_not_equal_choice(self):
+    def test_get_account_type_choice_account_type_display_not_equal_choice(
+            self):
         self.assertEqual(None, Account.get_account_type_choice('test'))
 
     def test_get_status_choice_status_display_equal_choice(self):
@@ -67,7 +68,7 @@ class AccountModelTest(CommonTestCase):
         self.assertEqual(account_1, account_2)
 
     def test_get_or_create_if_not_account_sid_with_exception(self):
-        account = Account.get_or_create(account=self.mock_account())
+        Account.get_or_create(account=self.mock_account())
         self.assertEqual(1, Account.objects.all().count())
         self.assertEqual('test', Account.objects.first().sid)
 
@@ -77,7 +78,7 @@ class AccountModelTest(CommonTestCase):
         )
     def test_get_or_create_if_account_sid_with_exception(self, twilio_account):
         twilio_account.return_value = self.mock_account()
-        account = Account.get_or_create(account_sid='test')
+        Account.get_or_create(account_sid='test')
         self.assertEqual(1, Account.objects.all().count())
         self.assertEqual('test', Account.objects.first().sid)
 
@@ -94,8 +95,8 @@ class AccountModelTest(CommonTestCase):
         'django_twilio_sms.models.Account.twilio_account',
         new_callable=PropertyMock
         )
-    def test_sync_twilio_account_if_not_account_sids_not_equal(self,
-            twilio_account):
+    def test_sync_twilio_account_if_not_account_sids_not_equal(
+            self, twilio_account):
         twilio_account.return_value = self.mock_account()
         account = mommy.make(Account, sid='test')
         account.sync_twilio_account()
@@ -213,7 +214,8 @@ class PhoneNumberModelTest(CommonTestCase):
         phone_number = phone_number_recipe.make()
         self.assertEqual(phone_number, PhoneNumber.get_or_create(phone_number))
 
-    def test_get_or_create_caller_created_false_phone_number_created_false(self):
+    def test_get_or_create_caller_created_false_phone_number_created_false(
+            self):
         caller = caller_recipe.make()
         phone_number = phone_number_recipe.make(caller=caller)
         self.assertEqual(
@@ -236,8 +238,9 @@ class PhoneNumberModelTest(CommonTestCase):
 
 class MessageModelTest(CommonTestCase):
 
-    def mock_message(self, messaging_service_sid=None, error=None,
-            direction='inbound', status='accepted', price='-0.00750'):
+    def mock_message(
+            self, messaging_service_sid=None, error=None, direction='inbound',
+            status='accepted', price='-0.00750'):
         account = mommy.make(Account, sid='testaccount')
 
         if error:
@@ -371,10 +374,10 @@ class MessageModelTest(CommonTestCase):
 
     @patch('django_twilio_sms.models.response_message')
     @patch('django_twilio_sms.models.Message.send_message')
-    def test_send_response_message_if_direction_is_inbound(self, send_message,
-            response_message):
+    def test_send_response_message_if_direction_is_inbound(
+            self, send_message, response_message):
         action = mommy.make(Action, name='STOP')
-        response = mommy.make(Response, body='test', action=action)
+        mommy.make(Response, body='test', action=action)
         to_phone_number = phone_number_recipe.make()
         from_phone_number = phone_number_recipe.make()
         message = message_recipe.make(
@@ -418,7 +421,7 @@ class MessageModelTest(CommonTestCase):
         new_callable=PropertyMock
         )
     def test_sync_twilio_message_if_not_message(self, twilio_message):
-        twilio_message.return_value = self.mock_message()    
+        twilio_message.return_value = self.mock_message()
         message = message_recipe.make()
         message.sync_twilio_message()
         self.assertEqual(datetime.date(2016, 1, 1), message.date_sent)
@@ -440,7 +443,9 @@ class MessageModelTest(CommonTestCase):
 
     def test_sync_twilio_message_if_message_service_sid(self):
         message = message_recipe.make()
-        message.sync_twilio_message(self.mock_message(messaging_service_sid='test'))
+        message.sync_twilio_message(self.mock_message(
+            messaging_service_sid='test')
+        )
         self.assertEqual(1, MessagingService.objects.all().count())
         self.assertEqual(
             message.messaging_service, MessagingService.objects.first()
@@ -485,8 +490,8 @@ class MessageModelTest(CommonTestCase):
         self.assertEqual('0.0', message.price)
 
     def test_sync_twilio_message_if_direction_equal_inbound(self):
-        from_phone_number = phone_number_recipe.make()
-        to_phone_number = phone_number_recipe.make(twilio_number=True)
+        phone_number_recipe.make()
+        phone_number_recipe.make(twilio_number=True)
         message = message_recipe.make()
         message.sync_twilio_message(self.mock_message())
         self.assertEqual(
@@ -495,10 +500,11 @@ class MessageModelTest(CommonTestCase):
         )
 
     def test_sync_twilio_message_if_direction_not_equal_inbound(self):
-        from_phone_number = phone_number_recipe.make(twilio_number=True)
-        to_phone_number = phone_number_recipe.make()
+        phone_number_recipe.make(twilio_number=True)
         message = message_recipe.make()
-        message.sync_twilio_message(self.mock_message(direction='outbound-api'))
+        message.sync_twilio_message(
+            self.mock_message(direction='outbound-api')
+        )
         self.assertEqual(
             PhoneNumber.objects.get(twilio_number=True),
             message.from_phone_number
