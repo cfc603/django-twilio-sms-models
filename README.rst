@@ -8,6 +8,9 @@ django-twilio-sms-models
 .. image:: https://travis-ci.org/cfc603/django-twilio-sms-models.png?branch=master
     :target: https://travis-ci.org/cfc603/django-twilio-sms-models
 
+.. image:: https://codecov.io/github/cfc603/django-twilio-sms-models/coverage.svg?branch=master
+    :target: https://codecov.io/github/cfc603/django-twilio-sms-models?branch=master
+
 Django models for Twilio's Programmable SMS
 
 Documentation

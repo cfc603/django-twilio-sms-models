@@ -77,9 +77,9 @@ Ready to contribute? Here's how to set up `django-twilio-sms-models` for local d
 5. When you're done making changes, check that your changes pass flake8 and the
    tests, including testing other Python versions with tox::
 
-        $ flake8 django_twilio_sms tests
-        $ python setup.py test
+        $ flake8 django_twilio_sms tests --exclude=migrations
         $ tox
+        $ coverage report -m
 
    To get flake8 and tox, just pip install them into your virtualenv. 
 
@@ -96,7 +96,7 @@ Pull Request Guidelines
 
 Before you submit a pull request, check that it meets these guidelines:
 
-1. The pull request should include tests.
+1. The pull request should include tests. Coverage should atleast be equal to the previous commit.
 2. If the pull request adds functionality, the docs should be updated. Put
    your new functionality into a function with a docstring, and add the
    feature to the list in README.rst.
