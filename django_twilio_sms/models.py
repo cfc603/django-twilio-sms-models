@@ -166,13 +166,13 @@ class MessagingService(Sid):
 @python_2_unicode_compatible
 class PhoneNumber(CreatedUpdated):
     caller = models.OneToOneField(Caller)
-    twilio_number = models.BooleanField(default=False)
+    unsubscribed = models.BooleanField(default=False)
 
     def __str__(self):
         return '{}'.format(self.caller.phone_number)
 
     @classmethod
-    def get_or_create(cls, phone_number, twilio_number=False):
+    def get_or_create(cls, phone_number, unsubscribed=False):
         if isinstance(phone_number, cls):
             return phone_number
 
@@ -180,7 +180,7 @@ class PhoneNumber(CreatedUpdated):
             phone_number=phone_number
         )
         phone_number_obj, create = cls.objects.get_or_create(
-            caller=caller, defaults={'twilio_number': twilio_number}
+            caller=caller, defaults={'unsubscribed': unsubscribed}
         )
 
         return phone_number_obj
@@ -347,14 +347,8 @@ class Message(Sid):
         self.currency = Currency.get_or_create(message.price_unit)
         self.api_version = ApiVersion.get_or_create(message.api_version)
 
-        if self.direction == self.INBOUND:
-            self.from_phone_number = PhoneNumber.get_or_create(message.from_)
-            self.to_phone_number = PhoneNumber.get_or_create(message.to, True)
-        else:
-            self.from_phone_number = PhoneNumber.get_or_create(
-                message.from_, True
-            )
-            self.to_phone_number = PhoneNumber.get_or_create(message.to)
+        self.from_phone_number = PhoneNumber.get_or_create(message.from_)
+        self.to_phone_number = PhoneNumber.get_or_create(message.to)
 
         self.save()
 

@@ -489,27 +489,6 @@ class MessageModelTest(CommonTestCase):
         message.sync_twilio_message(self.mock_message(price=None))
         self.assertEqual('0.0', message.price)
 
-    def test_sync_twilio_message_if_direction_equal_inbound(self):
-        phone_number_recipe.make()
-        phone_number_recipe.make(twilio_number=True)
-        message = message_recipe.make()
-        message.sync_twilio_message(self.mock_message())
-        self.assertEqual(
-            PhoneNumber.objects.get(twilio_number=True),
-            message.to_phone_number
-        )
-
-    def test_sync_twilio_message_if_direction_not_equal_inbound(self):
-        phone_number_recipe.make(twilio_number=True)
-        message = message_recipe.make()
-        message.sync_twilio_message(
-            self.mock_message(direction='outbound-api')
-        )
-        self.assertEqual(
-            PhoneNumber.objects.get(twilio_number=True),
-            message.from_phone_number
-        )
-
 
 class ActionModelTest(CommonTestCase):
 
