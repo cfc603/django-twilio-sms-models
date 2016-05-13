@@ -382,6 +382,22 @@ class MessageModelTest(CommonTestCase):
             'https://www.test.com/twilio-integration/webhooks/callback-view/'
         )
 
+    def test_check_for_subscription_message_if_body_in_unsubscribe(self):
+        from_phone_number = phone_number_recipe.make(unsubscribed=False)
+        message = message_recipe.make(
+            body='STOP', from_phone_number=from_phone_number
+        )
+        message.check_for_subscription_message()
+        self.assertTrue(message.from_phone_number.unsubscribed)
+
+    def test_check_for_subscription_message_if_body_in_subscribe(self):
+        from_phone_number = phone_number_recipe.make(unsubscribed=True)
+        message = message_recipe.make(
+            body='START', from_phone_number=from_phone_number
+        )
+        message.check_for_subscription_message()
+        self.assertFalse(message.from_phone_number.unsubscribed)
+
     @patch('django_twilio_sms.models.response_message')
     @patch('django_twilio_sms.models.Message.send_message')
     def test_send_response_message_if_direction_is_inbound_not_unsubscribed(
@@ -442,7 +458,9 @@ class MessageModelTest(CommonTestCase):
         send_message.assert_not_called()
         response_message.assert_not_called()
 
-    def test_sync_twilio_message_if_message(self):
+    @patch('django_twilio_sms.models.Message.check_for_subscription_message')
+    def test_sync_twilio_message_if_message(
+            self, check_for_subscription_message):
         message = message_recipe.make()
         message.sync_twilio_message(self.mock_message())
         self.assertEqual(datetime.date(2016, 1, 1), message.date_sent)
@@ -461,12 +479,15 @@ class MessageModelTest(CommonTestCase):
         self.assertEqual(
             '+19999999992', message.to_phone_number.caller.phone_number
         )
+        check_for_subscription_message.assert_called_once()
 
+    @patch('django_twilio_sms.models.Message.check_for_subscription_message')
     @patch(
         'django_twilio_sms.models.Message.twilio_message',
         new_callable=PropertyMock
         )
-    def test_sync_twilio_message_if_not_message(self, twilio_message):
+    def test_sync_twilio_message_if_not_message(
+            self, twilio_message, check_for_subscription_message):
         twilio_message.return_value = self.mock_message()
         message = message_recipe.make()
         message.sync_twilio_message()
@@ -486,6 +507,7 @@ class MessageModelTest(CommonTestCase):
         self.assertEqual(
             '+19999999992', message.to_phone_number.caller.phone_number
         )
+        check_for_subscription_message.assert_called_once()
 
     def test_sync_twilio_message_if_message_service_sid(self):
         message = message_recipe.make()

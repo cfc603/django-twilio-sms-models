@@ -237,6 +237,12 @@ class Message(Sid):
         (OUTBOUND_REPLY, 'outbound-reply'),
     )
 
+    UNSUBSCRIBE_MESSAGES = [
+        'STOP', 'STOPALL', 'UNSUBSCRIBE', 'CANCEL', 'END', 'QUIT'
+    ]
+
+    SUBSCRIBE_MESSAGES = ['START', 'YES']
+
     date_sent = models.DateTimeField(null=True)
     account = models.ForeignKey(Account)
     messaging_service = models.ForeignKey(MessagingService, null=True)
@@ -312,6 +318,14 @@ class Message(Sid):
         absolute_uri = AbsoluteURI('django_twilio_sms', 'callback_view')
         return absolute_uri.get_absolute_uri()
 
+    def check_for_subscription_message(self):
+        body = self.body.upper().strip()
+
+        if body in self.UNSUBSCRIBE_MESSAGES:
+            self.from_phone_number.unsubscribe()
+        elif body in self.SUBSCRIBE_MESSAGES:
+            self.from_phone_number.subscribe()
+
     def send_response_message(self):
         if self.direction is self.INBOUND:
             if not self.from_phone_number.unsubscribed:
@@ -337,7 +351,6 @@ class Message(Sid):
                 message.messaging_service_sid
             )
 
-        self.body = message.body
         self.num_media = message.num_media
         self.num_segments = message.num_segments
 
@@ -358,6 +371,9 @@ class Message(Sid):
 
         self.from_phone_number = PhoneNumber.get_or_create(message.from_)
         self.to_phone_number = PhoneNumber.get_or_create(message.to)
+
+        self.body = message.body
+        self.check_for_subscription_message()
 
         self.save()
 
