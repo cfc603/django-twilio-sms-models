@@ -306,15 +306,16 @@ class Message(Sid):
 
     def send_response_message(self):
         if self.direction is self.INBOUND:
-            action = Action.get_action(self.body)
-            Message.send_message(
-                body=action.get_active_response().body,
-                to=self.from_phone_number,
-                from_=self.to_phone_number
-            )
-            response_message.send_robust(
-                sender=self.__class__, action=action, message=self
-            )
+            if not self.from_phone_number.unsubscribed:
+                action = Action.get_action(self.body)
+                Message.send_message(
+                    body=action.get_active_response().body,
+                    to=self.from_phone_number,
+                    from_=self.to_phone_number
+                )
+                response_message.send_robust(
+                    sender=self.__class__, action=action, message=self
+                )
 
     def sync_twilio_message(self, message=None):
         if not message:

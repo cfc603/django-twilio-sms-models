@@ -374,12 +374,12 @@ class MessageModelTest(CommonTestCase):
 
     @patch('django_twilio_sms.models.response_message')
     @patch('django_twilio_sms.models.Message.send_message')
-    def test_send_response_message_if_direction_is_inbound(
+    def test_send_response_message_if_direction_is_inbound_not_unsubscribed(
             self, send_message, response_message):
         action = mommy.make(Action, name='STOP')
         mommy.make(Response, body='test', action=action)
         to_phone_number = phone_number_recipe.make()
-        from_phone_number = phone_number_recipe.make()
+        from_phone_number = phone_number_recipe.make(unsubscribed=False)
         message = message_recipe.make(
             body='STOP',
             direction=Message.INBOUND,
@@ -395,6 +395,42 @@ class MessageModelTest(CommonTestCase):
         response_message.send_robust.assert_called_with(
             sender=Message, action=action, message=message
         )
+
+    @patch('django_twilio_sms.models.response_message')
+    @patch('django_twilio_sms.models.Message.send_message')
+    def test_send_response_message_if_direction_is_inbound_is_unsubscribed(
+            self, send_message, response_message):
+        action = mommy.make(Action, name='STOP')
+        mommy.make(Response, body='test', action=action)
+        to_phone_number = phone_number_recipe.make()
+        from_phone_number = phone_number_recipe.make(unsubscribed=True)
+        message = message_recipe.make(
+            body='STOP',
+            direction=Message.INBOUND,
+            to_phone_number=to_phone_number,
+            from_phone_number=from_phone_number
+        )
+        message.send_response_message()
+        send_message.assert_not_called()
+        response_message.assert_not_called()
+
+    @patch('django_twilio_sms.models.response_message')
+    @patch('django_twilio_sms.models.Message.send_message')
+    def test_send_response_message_if_direction_not_inbound(
+            self, send_message, response_message):
+        action = mommy.make(Action, name='STOP')
+        mommy.make(Response, body='test', action=action)
+        to_phone_number = phone_number_recipe.make()
+        from_phone_number = phone_number_recipe.make()
+        message = message_recipe.make(
+            body='STOP',
+            direction=Message.OUTBOUND_API,
+            to_phone_number=to_phone_number,
+            from_phone_number=from_phone_number
+        )
+        message.send_response_message()
+        send_message.assert_not_called()
+        response_message.assert_not_called()
 
     def test_sync_twilio_message_if_message(self):
         message = message_recipe.make()
