@@ -11,7 +11,7 @@ from django_twilio.client import twilio_client
 from django_twilio.models import Caller
 from twilio.rest.exceptions import TwilioRestException
 
-from .signals import response_message
+from .signals import response_message, unsubscribe_signal
 from .utils import AbsoluteURI
 
 
@@ -166,13 +166,13 @@ class MessagingService(Sid):
 @python_2_unicode_compatible
 class PhoneNumber(CreatedUpdated):
     caller = models.OneToOneField(Caller)
-    twilio_number = models.BooleanField(default=False)
+    unsubscribed = models.BooleanField(default=False)
 
     def __str__(self):
         return '{}'.format(self.caller.phone_number)
 
     @classmethod
-    def get_or_create(cls, phone_number, twilio_number=False):
+    def get_or_create(cls, phone_number, unsubscribed=False):
         if isinstance(phone_number, cls):
             return phone_number
 
@@ -180,7 +180,7 @@ class PhoneNumber(CreatedUpdated):
             phone_number=phone_number
         )
         phone_number_obj, create = cls.objects.get_or_create(
-            caller=caller, defaults={'twilio_number': twilio_number}
+            caller=caller, defaults={'unsubscribed': unsubscribed}
         )
 
         return phone_number_obj
@@ -188,6 +188,14 @@ class PhoneNumber(CreatedUpdated):
     @property
     def as_e164(self):
         return self.caller.phone_number.as_e164
+
+    def subscribe(self):
+        self.unsubscribed = False
+        self.save()
+
+    def unsubscribe(self):
+        self.unsubscribed = True
+        self.save()
 
 
 class Message(Sid):
@@ -228,6 +236,12 @@ class Message(Sid):
         (OUTBOUND_CALL, 'outbound-call'),
         (OUTBOUND_REPLY, 'outbound-reply'),
     )
+
+    UNSUBSCRIBE_MESSAGES = [
+        'STOP', 'STOPALL', 'UNSUBSCRIBE', 'CANCEL', 'END', 'QUIT'
+    ]
+
+    SUBSCRIBE_MESSAGES = ['START', 'YES']
 
     date_sent = models.DateTimeField(null=True)
     account = models.ForeignKey(Account)
@@ -304,17 +318,36 @@ class Message(Sid):
         absolute_uri = AbsoluteURI('django_twilio_sms', 'callback_view')
         return absolute_uri.get_absolute_uri()
 
+    def check_for_subscription_message(self):
+        if self.direction is self.INBOUND:
+            body = self.body.upper().strip()
+
+            if body in self.UNSUBSCRIBE_MESSAGES:
+                self.from_phone_number.unsubscribe()
+
+                unsubscribe_signal.send_robust(
+                    sender=self.__class__, message=self, unsubscribed=True
+                )
+
+            elif body in self.SUBSCRIBE_MESSAGES:
+                self.from_phone_number.subscribe()
+
+                unsubscribe_signal.send_robust(
+                    sender=self.__class__, message=self, unsubscribed=False
+                )
+
     def send_response_message(self):
         if self.direction is self.INBOUND:
-            action = Action.get_action(self.body)
-            Message.send_message(
-                body=action.get_active_response().body,
-                to=self.from_phone_number,
-                from_=self.to_phone_number
-            )
-            response_message.send_robust(
-                sender=self.__class__, action=action, message=self
-            )
+            if not self.from_phone_number.unsubscribed:
+                action = Action.get_action(self.body)
+                Message.send_message(
+                    body=action.get_active_response().body,
+                    to=self.from_phone_number,
+                    from_=self.to_phone_number
+                )
+                response_message.send_robust(
+                    sender=self.__class__, action=action, message=self
+                )
 
     def sync_twilio_message(self, message=None):
         if not message:
@@ -328,7 +361,6 @@ class Message(Sid):
                 message.messaging_service_sid
             )
 
-        self.body = message.body
         self.num_media = message.num_media
         self.num_segments = message.num_segments
 
@@ -347,14 +379,11 @@ class Message(Sid):
         self.currency = Currency.get_or_create(message.price_unit)
         self.api_version = ApiVersion.get_or_create(message.api_version)
 
-        if self.direction == self.INBOUND:
-            self.from_phone_number = PhoneNumber.get_or_create(message.from_)
-            self.to_phone_number = PhoneNumber.get_or_create(message.to, True)
-        else:
-            self.from_phone_number = PhoneNumber.get_or_create(
-                message.from_, True
-            )
-            self.to_phone_number = PhoneNumber.get_or_create(message.to)
+        self.from_phone_number = PhoneNumber.get_or_create(message.from_)
+        self.to_phone_number = PhoneNumber.get_or_create(message.to)
+
+        self.body = message.body
+        self.check_for_subscription_message()
 
         self.save()
 
