@@ -235,6 +235,16 @@ class PhoneNumberModelTest(CommonTestCase):
         phone_number = phone_number_recipe.make()
         self.assertEqual('+19999999991', phone_number.as_e164)
 
+    def test_subscribe(self):
+        phone_number = phone_number_recipe.make(unsubscribed=True)
+        phone_number.subscribe()
+        self.assertFalse(phone_number.unsubscribed)
+
+    def test_unsubscribe(self):
+        phone_number = phone_number_recipe.make(unsubscribed=False)
+        phone_number.unsubscribe()
+        self.assertTrue(phone_number.unsubscribed)
+
 
 class MessageModelTest(CommonTestCase):
 

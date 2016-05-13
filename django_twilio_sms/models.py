@@ -189,6 +189,14 @@ class PhoneNumber(CreatedUpdated):
     def as_e164(self):
         return self.caller.phone_number.as_e164
 
+    def subscribe(self):
+        self.unsubscribed = False
+        self.save()
+
+    def unsubscribe(self):
+        self.unsubscribed = True
+        self.save()
+
 
 class Message(Sid):
 
