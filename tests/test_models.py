@@ -382,13 +382,18 @@ class MessageModelTest(CommonTestCase):
             'https://www.test.com/twilio-integration/webhooks/callback-view/'
         )
 
-    def test_check_for_subscription_message_if_body_in_unsubscribe(self):
+    @patch('django_twilio_sms.models.unsubscribe_signal')
+    def test_check_for_subscription_message_if_body_in_unsubscribe(
+            self, unsubscribe_signal):
         from_phone_number = phone_number_recipe.make(unsubscribed=False)
         message = message_recipe.make(
             body='STOP', from_phone_number=from_phone_number
         )
         message.check_for_subscription_message()
         self.assertTrue(message.from_phone_number.unsubscribed)
+        unsubscribe_signal.send_robust.assert_called_once_with(
+            sender=Message, message=message, unsubscribed=True
+        )
 
     def test_check_for_subscription_message_if_body_in_subscribe(self):
         from_phone_number = phone_number_recipe.make(unsubscribed=True)

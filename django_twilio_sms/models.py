@@ -11,7 +11,7 @@ from django_twilio.client import twilio_client
 from django_twilio.models import Caller
 from twilio.rest.exceptions import TwilioRestException
 
-from .signals import response_message
+from .signals import response_message, unsubscribe_signal
 from .utils import AbsoluteURI
 
 
@@ -323,8 +323,17 @@ class Message(Sid):
 
         if body in self.UNSUBSCRIBE_MESSAGES:
             self.from_phone_number.unsubscribe()
+
+            unsubscribe_signal.send_robust(
+                sender=self.__class__, message=self, unsubscribed=True
+            )
+
         elif body in self.SUBSCRIBE_MESSAGES:
             self.from_phone_number.subscribe()
+
+            unsubscribe_signal.send_robust(
+                sender=self.__class__, message=self, unsubscribed=False
+            )
 
     def send_response_message(self):
         if self.direction is self.INBOUND:
