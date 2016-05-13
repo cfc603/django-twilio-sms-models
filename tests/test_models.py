@@ -383,11 +383,26 @@ class MessageModelTest(CommonTestCase):
         )
 
     @patch('django_twilio_sms.models.unsubscribe_signal')
+    def test_check_for_subscription_message_if_direction_is_not_inbound(
+            self, unsubscribe_signal):
+        from_phone_number = phone_number_recipe.make(unsubscribed=False)
+        message = message_recipe.make(
+            body='STOP',
+            from_phone_number=from_phone_number,
+            direction=Message.OUTBOUND_API
+        )
+        message.check_for_subscription_message()
+        self.assertFalse(message.from_phone_number.unsubscribed)
+        unsubscribe_signal.send_robust.assert_not_called()
+
+    @patch('django_twilio_sms.models.unsubscribe_signal')
     def test_check_for_subscription_message_if_body_in_unsubscribe(
             self, unsubscribe_signal):
         from_phone_number = phone_number_recipe.make(unsubscribed=False)
         message = message_recipe.make(
-            body='STOP', from_phone_number=from_phone_number
+            body='STOP',
+            from_phone_number=from_phone_number,
+            direction=Message.INBOUND
         )
         message.check_for_subscription_message()
         self.assertTrue(message.from_phone_number.unsubscribed)
@@ -398,7 +413,9 @@ class MessageModelTest(CommonTestCase):
     def test_check_for_subscription_message_if_body_in_subscribe(self):
         from_phone_number = phone_number_recipe.make(unsubscribed=True)
         message = message_recipe.make(
-            body='START', from_phone_number=from_phone_number
+            body='START',
+            from_phone_number=from_phone_number,
+            direction=Message.INBOUND
         )
         message.check_for_subscription_message()
         self.assertFalse(message.from_phone_number.unsubscribed)

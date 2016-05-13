@@ -319,21 +319,22 @@ class Message(Sid):
         return absolute_uri.get_absolute_uri()
 
     def check_for_subscription_message(self):
-        body = self.body.upper().strip()
+        if self.direction is self.INBOUND:
+            body = self.body.upper().strip()
 
-        if body in self.UNSUBSCRIBE_MESSAGES:
-            self.from_phone_number.unsubscribe()
+            if body in self.UNSUBSCRIBE_MESSAGES:
+                self.from_phone_number.unsubscribe()
 
-            unsubscribe_signal.send_robust(
-                sender=self.__class__, message=self, unsubscribed=True
-            )
+                unsubscribe_signal.send_robust(
+                    sender=self.__class__, message=self, unsubscribed=True
+                )
 
-        elif body in self.SUBSCRIBE_MESSAGES:
-            self.from_phone_number.subscribe()
+            elif body in self.SUBSCRIBE_MESSAGES:
+                self.from_phone_number.subscribe()
 
-            unsubscribe_signal.send_robust(
-                sender=self.__class__, message=self, unsubscribed=False
-            )
+                unsubscribe_signal.send_robust(
+                    sender=self.__class__, message=self, unsubscribed=False
+                )
 
     def send_response_message(self):
         if self.direction is self.INBOUND:
